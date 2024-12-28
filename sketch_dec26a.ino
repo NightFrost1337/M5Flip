@@ -1,3 +1,4 @@
+#include <Preferences.h>
 #include "M5StickCPlus2.h"
 
 String menuOptions[] = {"Home", "Config", "Info"};
@@ -12,16 +13,34 @@ bool inConfigMenu = false;
 uint16_t borderColor = TFT_ORANGE;
 uint16_t backgroundColor = TFT_BLACK;
 
+Preferences preferences;
+
+int xp = 0;
+int level = 1;
+int xpNextLevel = 100;
+unsigned long lastActivityTime = 0;
+
 void setup() {
   auto cfg = M5.config();
   StickCP2.begin(cfg);
   StickCP2.Display.setRotation(1);
   StickCP2.Display.fillScreen(backgroundColor);
+
+  preferences.begin("user_data", true);
+  xp = preferences.getInt("xp", 0);
+  level = preferences.getInt("level", 1);
+  preferences.end();
+
   displayMenu();
 }
 
 void loop() {
   M5.update();
+
+  if (millis() - lastActivityTime > 1000) {
+    gainXP(1);
+    lastActivityTime = millis();
+  }
 
   if (onMenu) {
     if (M5.BtnB.wasPressed()) {
@@ -34,6 +53,8 @@ void loop() {
         inConfigMenu = true;
         onMenu = false;
         displayConfigMenu();
+      } else if (menuOptions[currSelection] == "Info") {
+        displayInfo();
       } else {
         displayPage(menuOptions[currSelection]);
       }
@@ -67,8 +88,8 @@ void loop() {
 }
 
 void displayHeader() {
-  StickCP2.Display.fillRect(0, 0, 240, 20, TFT_DARKGREY); 
-  StickCP2.Display.drawRect(0, 0, 240, 20, TFT_ORANGE);    
+  StickCP2.Display.fillRect(0, 0, 240, 20, TFT_DARKGREY);
+  StickCP2.Display.drawRect(0, 0, 240, 20, TFT_ORANGE);
 
   StickCP2.Display.setTextSize(1);
   StickCP2.Display.setTextColor(TFT_WHITE, TFT_DARKGREY);
@@ -82,12 +103,12 @@ void displayHeader() {
 
 void displayMenu() {
   StickCP2.Display.fillScreen(backgroundColor);
-  displayHeader(); 
+  displayHeader();
   onMenu = true;
 
   for (int i = 0; i < totalOptions; i++) {
     int boxX = 20;
-    int boxY = 30 + i * 40; 
+    int boxY = 30 + i * 40;
     int boxWidth = 200;
     int boxHeight = 30;
 
@@ -108,12 +129,12 @@ void displayMenu() {
 
 void displayConfigMenu() {
   StickCP2.Display.fillScreen(backgroundColor);
-  displayHeader(); 
+  displayHeader();
   inConfigMenu = true;
 
   for (int i = 0; i < totalConfigOptions; i++) {
     int boxX = 20;
-    int boxY = 30 + i * 40; 
+    int boxY = 30 + i * 40;
     int boxWidth = 200;
     int boxHeight = 30;
 
@@ -132,9 +153,31 @@ void displayConfigMenu() {
   }
 }
 
+void displayInfo() {
+  StickCP2.Display.fillScreen(backgroundColor);
+  displayHeader();
+
+  StickCP2.Display.setTextSize(2);
+  StickCP2.Display.setTextColor(TFT_WHITE);
+  StickCP2.Display.setCursor(10, 40);
+  StickCP2.Display.printf("Level: %d", level);
+
+  StickCP2.Display.setCursor(10, 70);
+  StickCP2.Display.printf("XP: %d/%d", xp, xpNextLevel);
+
+  int progressBarWidth = 200;
+  int filledWidth = (xp * progressBarWidth) / xpNextLevel;
+  StickCP2.Display.fillRect(20, 100, filledWidth, 20, TFT_GREEN);
+  StickCP2.Display.drawRect(20, 100, progressBarWidth, 20, TFT_WHITE);
+
+  StickCP2.Display.setTextSize(1);
+  StickCP2.Display.setCursor(10, 140);
+  StickCP2.Display.print("Press BtnA to return");
+}
+
 void displayPage(String pageName) {
   StickCP2.Display.fillScreen(backgroundColor);
-  displayHeader(); 
+  displayHeader();
   onMenu = false;
 
   StickCP2.Display.setTextSize(3);
@@ -147,4 +190,19 @@ void displayPage(String pageName) {
   StickCP2.Display.setCursor(20, 120);
   StickCP2.Display.setTextColor(borderColor);
   StickCP2.Display.print("Press BtnA to go back");
+}
+
+void gainXP(int amount) {
+  xp += amount;
+
+  if (xp >= xpNextLevel) {
+    xp -= xpNextLevel;
+    level++;
+    xpNextLevel += 50;
+
+    preferences.begin("user_data", false);
+    preferences.putInt("xp", xp);
+    preferences.putInt("level", level);
+    preferences.end();
+  }
 }
