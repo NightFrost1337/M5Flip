@@ -19,6 +19,8 @@ int xp = 0;
 int level = 1;
 int xpNextLevel = 100;
 unsigned long lastActivityTime = 0;
+unsigned long lastXPTime = 0;       
+const unsigned long afkTimeout = 120000; 
 
 void setup() {
   auto cfg = M5.config();
@@ -32,20 +34,27 @@ void setup() {
   preferences.end();
 
   displayMenu();
+  lastActivityTime = millis(); 
 }
 
 void loop() {
   M5.update();
 
-  if (millis() - lastActivityTime > 1000) {
+  if (isAFK()) {
+    displayAFKMessage();
+    return;
+  }
+
+  if (millis() - lastXPTime > 1000) {
     gainXP(1);
-    lastActivityTime = millis();
+    lastXPTime = millis();
   }
 
   if (onMenu) {
     if (M5.BtnB.wasPressed()) {
       currSelection = (currSelection + 1) % totalOptions;
       displayMenu();
+      lastActivityTime = millis(); 
     }
 
     if (M5.BtnA.wasPressed()) {
@@ -58,11 +67,13 @@ void loop() {
       } else {
         displayPage(menuOptions[currSelection]);
       }
+      lastActivityTime = millis(); 
     }
   } else if (inConfigMenu) {
     if (M5.BtnB.wasPressed()) {
       configSelection = (configSelection + 1) % totalConfigOptions;
       displayConfigMenu();
+      lastActivityTime = millis(); 
     }
 
     if (M5.BtnA.wasPressed()) {
@@ -78,11 +89,13 @@ void loop() {
         StickCP2.Display.fillScreen(backgroundColor);
         displayConfigMenu();
       }
+      lastActivityTime = millis(); 
     }
   } else {
     if (M5.BtnA.wasPressed()) {
       onMenu = true;
       displayMenu();
+      lastActivityTime = millis(); 
     }
   }
 }
@@ -204,5 +217,24 @@ void gainXP(int amount) {
     preferences.putInt("xp", xp);
     preferences.putInt("level", level);
     preferences.end();
+  }
+}
+
+bool isAFK() {
+  return millis() - lastActivityTime > afkTimeout;
+}
+
+void displayAFKMessage() {
+  StickCP2.Display.fillScreen(backgroundColor);
+  displayHeader();
+  StickCP2.Display.setTextSize(2);
+  StickCP2.Display.setTextColor(TFT_RED);
+  StickCP2.Display.setCursor(30, 60);
+  StickCP2.Display.print("AFK Mode");
+  StickCP2.Display.setTextSize(1);
+  StickCP2.Display.setCursor(10, 120);
+  StickCP2.Display.print("Press any button to resume.");
+  if (M5.BtnA.wasPressed() || M5.BtnB.wasPressed()) {
+    lastActivityTime = millis();
   }
 }
