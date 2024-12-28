@@ -13,9 +13,10 @@ uint16_t borderColor = TFT_ORANGE;
 uint16_t backgroundColor = TFT_BLACK;
 
 void setup() {
-  M5.begin();
-  M5.Lcd.setRotation(1);
-  M5.Lcd.fillScreen(backgroundColor);
+  auto cfg = M5.config();
+  StickCP2.begin(cfg);
+  StickCP2.Display.setRotation(1);
+  StickCP2.Display.fillScreen(backgroundColor);
   displayMenu();
 }
 
@@ -47,13 +48,13 @@ void loop() {
       if (configOptions[configSelection] == "Back") {
         inConfigMenu = false;
         onMenu = true;
-        displayMenu(); 
+        displayMenu();
       } else if (configOptions[configSelection] == "Border Color") {
         borderColor = (borderColor == TFT_ORANGE) ? TFT_WHITE : TFT_ORANGE;
         displayConfigMenu();
       } else if (configOptions[configSelection] == "Background Color") {
         backgroundColor = (backgroundColor == TFT_BLACK) ? TFT_BLUE : TFT_BLACK;
-        M5.Lcd.fillScreen(backgroundColor);
+        StickCP2.Display.fillScreen(backgroundColor);
         displayConfigMenu();
       }
     }
@@ -65,68 +66,85 @@ void loop() {
   }
 }
 
+void displayHeader() {
+  StickCP2.Display.fillRect(0, 0, 240, 20, TFT_DARKGREY); 
+  StickCP2.Display.drawRect(0, 0, 240, 20, TFT_ORANGE);    
+
+  StickCP2.Display.setTextSize(1);
+  StickCP2.Display.setTextColor(TFT_WHITE, TFT_DARKGREY);
+  StickCP2.Display.setCursor(5, 5);
+  StickCP2.Display.print("M5Flip");
+
+  int batteryVoltage = StickCP2.Power.getBatteryVoltage();
+  StickCP2.Display.setCursor(200, 5);
+  StickCP2.Display.printf("%dmV", batteryVoltage);
+}
+
 void displayMenu() {
-  M5.Lcd.fillScreen(backgroundColor);
+  StickCP2.Display.fillScreen(backgroundColor);
+  displayHeader(); 
   onMenu = true;
 
   for (int i = 0; i < totalOptions; i++) {
     int boxX = 20;
-    int boxY = 20 + i * 40;
+    int boxY = 30 + i * 40; 
     int boxWidth = 200;
     int boxHeight = 30;
 
     if (i == currSelection) {
-      M5.Lcd.fillRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
-      M5.Lcd.drawRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
-      M5.Lcd.setTextColor(TFT_BLACK);
+      StickCP2.Display.fillRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
+      StickCP2.Display.drawRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
+      StickCP2.Display.setTextColor(TFT_BLACK);
     } else {
-      M5.Lcd.drawRect(boxX, boxY, boxWidth, boxHeight, borderColor);
-      M5.Lcd.setTextColor(TFT_WHITE);
+      StickCP2.Display.drawRect(boxX, boxY, boxWidth, boxHeight, borderColor);
+      StickCP2.Display.setTextColor(TFT_WHITE);
     }
 
-    M5.Lcd.setTextSize(2);
-    M5.Lcd.setCursor(boxX + 10, boxY + 5);
-    M5.Lcd.print(menuOptions[i]);
+    StickCP2.Display.setTextSize(2);
+    StickCP2.Display.setCursor(boxX + 10, boxY + 5);
+    StickCP2.Display.print(menuOptions[i]);
   }
 }
 
 void displayConfigMenu() {
-  M5.Lcd.fillScreen(backgroundColor);
+  StickCP2.Display.fillScreen(backgroundColor);
+  displayHeader(); 
   inConfigMenu = true;
 
   for (int i = 0; i < totalConfigOptions; i++) {
     int boxX = 20;
-    int boxY = 20 + i * 40;
+    int boxY = 30 + i * 40; 
     int boxWidth = 200;
     int boxHeight = 30;
 
     if (i == configSelection) {
-      M5.Lcd.fillRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
-      M5.Lcd.drawRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
-      M5.Lcd.setTextColor(TFT_BLACK);
+      StickCP2.Display.fillRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
+      StickCP2.Display.drawRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
+      StickCP2.Display.setTextColor(TFT_BLACK);
     } else {
-      M5.Lcd.drawRect(boxX, boxY, boxWidth, boxHeight, borderColor);
-      M5.Lcd.setTextColor(TFT_WHITE);
+      StickCP2.Display.drawRect(boxX, boxY, boxWidth, boxHeight, borderColor);
+      StickCP2.Display.setTextColor(TFT_WHITE);
     }
 
-    M5.Lcd.setTextSize(2);
-    M5.Lcd.setCursor(boxX + 10, boxY + 5);
-    M5.Lcd.print(configOptions[i]);
+    StickCP2.Display.setTextSize(2);
+    StickCP2.Display.setCursor(boxX + 10, boxY + 5);
+    StickCP2.Display.print(configOptions[i]);
   }
 }
 
 void displayPage(String pageName) {
-  M5.Lcd.fillScreen(backgroundColor);
+  StickCP2.Display.fillScreen(backgroundColor);
+  displayHeader(); 
   onMenu = false;
 
-  M5.Lcd.setTextSize(3);
-  M5.Lcd.setTextColor(TFT_WHITE);
-  M5.Lcd.setCursor(40, 50);
-  M5.Lcd.print("Page: ");
-  M5.Lcd.print(pageName);
+  StickCP2.Display.setTextSize(3);
+  StickCP2.Display.setTextColor(TFT_WHITE);
+  StickCP2.Display.setCursor(40, 50);
+  StickCP2.Display.print("Page: ");
+  StickCP2.Display.print(pageName);
 
-  M5.Lcd.setTextSize(2);
-  M5.Lcd.setCursor(20, 120);
-  M5.Lcd.setTextColor(borderColor);
-  M5.Lcd.print("Press BtnA to go back");
+  StickCP2.Display.setTextSize(2);
+  StickCP2.Display.setCursor(20, 120);
+  StickCP2.Display.setTextColor(borderColor);
+  StickCP2.Display.print("Press BtnA to go back");
 }
