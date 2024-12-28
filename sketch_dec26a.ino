@@ -1,7 +1,7 @@
 #include <Preferences.h>
 #include "M5StickCPlus2.h"
 
-String menuOptions[] = {"Home", "Config", "Info"};
+String menuOptions[] = {"Home", "Config", "Info", "New Option", "New Option", "New Option" };
 String configOptions[] = {"Border Color", "Background Color", "Back"};
 int currSelection = 0;
 int totalOptions = sizeof(menuOptions) / sizeof(menuOptions[0]);
@@ -119,11 +119,19 @@ void displayMenu() {
   displayHeader();
   onMenu = true;
 
+  int headerHeight = 20;
+  int menuStartY = headerHeight + 10; 
+  int scrollOffset = currSelection * 40; 
+
   for (int i = 0; i < totalOptions; i++) {
     int boxX = 20;
-    int boxY = 30 + i * 40;
+    int boxY = menuStartY + i * 40 - scrollOffset;
     int boxWidth = 200;
     int boxHeight = 30;
+
+    if (boxY + boxHeight <= headerHeight || boxY >= StickCP2.Display.height()) {
+      continue;
+    }
 
     if (i == currSelection) {
       StickCP2.Display.fillRect(boxX, boxY, boxWidth, boxHeight, TFT_WHITE);
@@ -138,6 +146,18 @@ void displayMenu() {
     StickCP2.Display.setCursor(boxX + 10, boxY + 5);
     StickCP2.Display.print(menuOptions[i]);
   }
+
+  StickCP2.Display.fillRect(0, 0, 240, headerHeight, TFT_DARKGREY); 
+  StickCP2.Display.drawRect(0, 0, 240, headerHeight, TFT_ORANGE);  
+
+  StickCP2.Display.setTextSize(1);
+  StickCP2.Display.setTextColor(TFT_WHITE, TFT_DARKGREY);
+  StickCP2.Display.setCursor(5, 5);
+  StickCP2.Display.print("M5Flip");
+
+  int batteryVoltage = StickCP2.Power.getBatteryVoltage();
+  StickCP2.Display.setCursor(200, 5);
+  StickCP2.Display.printf("%dmV", batteryVoltage);
 }
 
 void displayConfigMenu() {
